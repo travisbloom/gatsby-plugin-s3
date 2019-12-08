@@ -14,6 +14,10 @@ export type Params = {
 };
 
 export interface PluginOptions {
+    // An optional prefix/directory to use on the bucket. This requires the bucket to already be
+    // created. Do not include leading or trailing slashes. Can be useful with CloudFront originPath option.
+    bucketPrefix?: string;
+
     // Your bucket name (required)
     bucketName: string;
 
