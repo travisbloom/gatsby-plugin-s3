@@ -30,7 +30,7 @@ exports.CACHING_PARAMS = {
     'page-data/**/**.json': {
         CacheControl: 'public, max-age=0, must-revalidate',
     },
-    'static/**': {
+    '**/static/**': {
         CacheControl: 'public, max-age=31536000, immutable',
     },
     '**/**/!(sw).js': {
