@@ -1,8 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.withoutLeadingSlash = (s) => (s.startsWith('/') ? s.substring(1) : s);
-exports.withoutTrailingSlash = (s) => (s.endsWith('/') ? s.substring(0, s.length - 1) : s);
-exports.withTrailingSlash = (s) => (s.endsWith('/') ? s : `${s}/`);
+Object.defineProperty(exports, '__esModule', { value: true });
+exports.withoutLeadingSlash = s => (s.startsWith('/') ? s.substring(1) : s);
+exports.withoutTrailingSlash = s => (s.endsWith('/') ? s.substring(0, s.length - 1) : s);
+exports.withTrailingSlash = s => (s.endsWith('/') ? s : `${s}/`);
 const oldRegions = [
     'ap-northeast-1',
     'ap-southeast-1',
@@ -16,7 +15,7 @@ const oldRegions = [
 ];
 // Inspired by Terraform implementation:
 // https://git.io/fjr2Q
-exports.getS3WebsiteDomainUrl = (region) => {
+exports.getS3WebsiteDomainUrl = region => {
     // New regions uses different syntax for website endpoints
     // http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteEndpoints.html
     if (oldRegions.includes(region)) {
@@ -24,4 +23,4 @@ exports.getS3WebsiteDomainUrl = (region) => {
     }
     return `s3-website.${region}.amazonaws.com`;
 };
-//# sourceMappingURL=util.js.map
+// # sourceMappingURL=util.js.map

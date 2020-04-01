@@ -1,9 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const path_1 = __importDefault(require("path"));
+const __importDefault =
+    (this && this.__importDefault) ||
+    function(mod) {
+        return mod?.__esModule ? mod : { default: mod };
+    };
+Object.defineProperty(exports, '__esModule', { value: true });
+const path_1 = __importDefault(require('path'));
+
 exports.CACHE_FILES = {
     config: path_1.default.join('.cache', 's3.config.json'),
     params: path_1.default.join('.cache', 's3.params.json'),
@@ -46,4 +48,4 @@ exports.CACHING_PARAMS = {
         CacheControl: 'public, max-age=0, must-revalidate',
     },
 };
-//# sourceMappingURL=constants.js.map
+// # sourceMappingURL=constants.js.map

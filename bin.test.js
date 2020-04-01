@@ -1,20 +1,22 @@
-"use strict";
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const chalk_1 = __importDefault(require("chalk"));
-const node_fetch_1 = __importDefault(require("node-fetch"));
-const constants_1 = require("./constants");
-const path_1 = __importDefault(require("path"));
-const glob_1 = __importDefault(require("glob"));
-const mime_1 = __importDefault(require("mime"));
+const __importDefault =
+    (this && this.__importDefault) ||
+    function(mod) {
+        return mod?.__esModule ? mod : { default: mod };
+    };
+Object.defineProperty(exports, '__esModule', { value: true });
+const chalk_1 = __importDefault(require('chalk'));
+const node_fetch_1 = __importDefault(require('node-fetch'));
+const constants_1 = require('./constants');
+const path_1 = __importDefault(require('path'));
+const glob_1 = __importDefault(require('glob'));
+const mime_1 = __importDefault(require('mime'));
+
 const { TESTING_ENDPOINT } = process.env;
 if (!TESTING_ENDPOINT) {
     throw new Error('TESTING_ENDPOINT env var must be set!');
 }
-console.debug(chalk_1.default `{blue.bold INFO} using {bold ${TESTING_ENDPOINT}} as endpoint to test against.`);
+console.debug(chalk_1.default`{blue.bold INFO} using {bold ${TESTING_ENDPOINT}} as endpoint to test against.`);
 const PUBLIC_DIR = path_1.default.join(__dirname, '..', 'examples', 'with-redirects', 'public');
 describe('applies caching and content type headers', () => {
     for (const pattern of Object.keys(constants_1.CACHING_PARAMS)) {
@@ -24,12 +26,13 @@ describe('applies caching and content type headers', () => {
         }
         // eslint-disable-next-line no-loop-func
         it(`to ${pattern} files`, async () => {
-            var _a;
+            let _a;
             // find a file that matches this pattern
             const files = glob_1.default.sync(pattern, { cwd: PUBLIC_DIR, nodir: true });
             const file = files[0];
             const response = await node_fetch_1.default(`${TESTING_ENDPOINT}/${file}`);
-            const contentType = (_a = mime_1.default.getType(file)) !== null && _a !== void 0 ? _a : 'application/octet-stream';
+            const contentType =
+                (_a = mime_1.default.getType(file)) !== null && _a !== void 0 ? _a : 'application/octet-stream';
             expect(response.ok).toBe(true);
             expect(response.headers.get('cache-control')).toBe(params.CacheControl);
             expect(response.headers.get('content-type')).toBe(contentType);
@@ -79,4 +82,4 @@ describe('redirects', () => {
         expect(response.headers.get('location')).toBe(`${TESTING_ENDPOINT}/trailing-slash/1`);
     });
 });
-//# sourceMappingURL=bin.test.js.map
+// # sourceMappingURL=bin.test.js.map

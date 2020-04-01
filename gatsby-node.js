@@ -1,14 +1,16 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const constants_1 = require("./constants");
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
-const url_1 = require("url");
-const util_1 = require("./util");
-const buildCondition = (redirectPath) => {
+const __importDefault =
+    (this && this.__importDefault) ||
+    function(mod) {
+        return mod?.__esModule ? mod : { default: mod };
+    };
+Object.defineProperty(exports, '__esModule', { value: true });
+const constants_1 = require('./constants');
+const fs_1 = __importDefault(require('fs'));
+const path_1 = __importDefault(require('path'));
+const url_1 = require('url');
+const util_1 = require('./util');
+
+const buildCondition = redirectPath => {
     return {
         KeyPrefixEquals: util_1.withoutLeadingSlash(redirectPath),
     };
@@ -32,10 +34,11 @@ const buildRedirect = (pluginOptions, route) => {
 };
 // converts gatsby redirects + rewrites to S3 routing rules
 // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-websiteconfiguration-routingrules.html
-const getRules = (pluginOptions, routes) => routes.map(route => ({
-    Condition: Object.assign({}, buildCondition(route.fromPath)),
-    Redirect: Object.assign({}, buildRedirect(pluginOptions, route)),
-}));
+const getRules = (pluginOptions, routes) =>
+    routes.map(route => ({
+        Condition: { ...buildCondition(route.fromPath) },
+        Redirect: { ...buildRedirect(pluginOptions, route) },
+    }));
 let params = {};
 exports.onPreBootstrap = ({ reporter }, { bucketName }) => {
     if (!bucketName) {
@@ -48,7 +51,7 @@ exports.onPreBootstrap = ({ reporter }, { bucketName }) => {
     params = {};
 };
 exports.createPagesStatefully = ({ store, actions: { createPage } }, userPluginOptions) => {
-    const pluginOptions = Object.assign(Object.assign({}, constants_1.DEFAULT_OPTIONS), userPluginOptions);
+    const pluginOptions = { ...constants_1.DEFAULT_OPTIONS, ...userPluginOptions };
     const { redirects, pages } = store.getState();
     if (pluginOptions.generateIndexPageForRedirect) {
         const indexRedirect = redirects.find(redirect => redirect.fromPath === '/');
@@ -62,14 +65,17 @@ exports.createPagesStatefully = ({ store, actions: { createPage } }, userPluginO
                     context: {},
                 });
             }
-            params = Object.assign(Object.assign({}, params), { 'index.html': {
+            params = {
+                ...params,
+                'index.html': {
                     WebsiteRedirectLocation: indexRedirect.toPath,
-                } });
+                },
+            };
         }
     }
 };
 exports.onPostBuild = ({ store }, userPluginOptions) => {
-    const pluginOptions = Object.assign(Object.assign({}, constants_1.DEFAULT_OPTIONS), userPluginOptions);
+    const pluginOptions = { ...constants_1.DEFAULT_OPTIONS, ...userPluginOptions };
     const { redirects, pages, program } = store.getState();
     if (!pluginOptions.hostname !== !pluginOptions.protocol) {
         // If one of these is provided but not the other
@@ -78,21 +84,21 @@ exports.onPostBuild = ({ store }, userPluginOptions) => {
     let rewrites = [];
     if (pluginOptions.generateMatchPathRewrites) {
         rewrites = Array.from(pages.values())
-            .filter((page) => !!page.matchPath && page.matchPath !== page.path)
+            .filter(page => !!page.matchPath && page.matchPath !== page.path)
             .map(page => ({
-            // sort of (w)hack. https://i.giphy.com/media/iN5qfn8S2qVgI/giphy.webp
-            // the syntax that gatsby invented here does not work with routing rules.
-            // routing rules syntax is `/app/` not `/app/*` (it's basically prefix by default)
-            fromPath: page.matchPath.endsWith('*')
-                ? page.matchPath.substring(0, page.matchPath.length - 1)
-                : page.matchPath,
-            toPath: page.path,
-        }));
+                // sort of (w)hack. https://i.giphy.com/media/iN5qfn8S2qVgI/giphy.webp
+                // the syntax that gatsby invented here does not work with routing rules.
+                // routing rules syntax is `/app/` not `/app/*` (it's basically prefix by default)
+                fromPath: page.matchPath.endsWith('*')
+                    ? page.matchPath.substring(0, page.matchPath.length - 1)
+                    : page.matchPath,
+                toPath: page.path,
+            }));
     }
     if (pluginOptions.mergeCachingParams) {
-        params = Object.assign(Object.assign({}, params), constants_1.CACHING_PARAMS);
+        params = { ...params, ...constants_1.CACHING_PARAMS };
     }
-    params = Object.assign(Object.assign({}, params), pluginOptions.params);
+    params = { ...params, ...pluginOptions.params };
     let routingRules = [];
     let slsRoutingRules = [];
     const temporaryRedirects = redirects
@@ -116,12 +122,27 @@ Try setting the 'generateRedirectObjectsForPermanentRedirects' configuration opt
             RedirectRule: redirect,
         }));
     }
-    fs_1.default.writeFileSync(path_1.default.join(program.directory, './.cache/s3.routingRules.json'), JSON.stringify(routingRules));
-    fs_1.default.writeFileSync(path_1.default.join(program.directory, './.cache/s3.sls.routingRules.json'), JSON.stringify(slsRoutingRules));
+    fs_1.default.writeFileSync(
+        path_1.default.join(program.directory, './.cache/s3.routingRules.json'),
+        JSON.stringify(routingRules)
+    );
+    fs_1.default.writeFileSync(
+        path_1.default.join(program.directory, './.cache/s3.sls.routingRules.json'),
+        JSON.stringify(slsRoutingRules)
+    );
     if (pluginOptions.generateRedirectObjectsForPermanentRedirects) {
-        fs_1.default.writeFileSync(path_1.default.join(program.directory, './.cache/s3.redirectObjects.json'), JSON.stringify(permanentRedirects));
+        fs_1.default.writeFileSync(
+            path_1.default.join(program.directory, './.cache/s3.redirectObjects.json'),
+            JSON.stringify(permanentRedirects)
+        );
     }
-    fs_1.default.writeFileSync(path_1.default.join(program.directory, './.cache/s3.params.json'), JSON.stringify(params));
-    fs_1.default.writeFileSync(path_1.default.join(program.directory, './.cache/s3.config.json'), JSON.stringify(pluginOptions));
+    fs_1.default.writeFileSync(
+        path_1.default.join(program.directory, './.cache/s3.params.json'),
+        JSON.stringify(params)
+    );
+    fs_1.default.writeFileSync(
+        path_1.default.join(program.directory, './.cache/s3.config.json'),
+        JSON.stringify(pluginOptions)
+    );
 };
-//# sourceMappingURL=gatsby-node.js.map
+// # sourceMappingURL=gatsby-node.js.map

@@ -1,5 +1,5 @@
 {
-    "name": "gatsby-plugin-s3",
+    "name": "gatsby-plugin-s3-travisbloom",
     "version": "0.3.2",
     "description": "Enables you to deploy your gatsby site to a S3 bucket.",
     "main": "bin.js",

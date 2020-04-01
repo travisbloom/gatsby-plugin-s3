@@ -226,7 +226,7 @@ const deploy = async ({ yes, bucket }: { yes: boolean; bucket: string }) => {
                     let key = createSafeS3Key(relative(publicDir, path));
                     if (config.bucketPrefix) {
                         key = `${config.bucketPrefix}/${key}`;
-                    }    
+                    }
                     const readStream = fs.createReadStream(path);
                     const hashStream = readStream.pipe(createHash('md5').setEncoding('hex'));
                     const data = await streamToPromise(hashStream);
