@@ -8,12 +8,6 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const url_1 = require("url");
 const util_1 = require("./util");
-// converts gatsby redirects + rewrites to S3 routing rules
-// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-websiteconfiguration-routingrules.html
-const getRules = (pluginOptions, routes) => (routes.map(route => ({
-    Condition: Object.assign({}, buildCondition(route.fromPath)),
-    Redirect: Object.assign({}, buildRedirect(pluginOptions, route)),
-})));
 const buildCondition = (redirectPath) => {
     return {
         KeyPrefixEquals: util_1.withoutLeadingSlash(redirectPath),
@@ -29,15 +23,19 @@ const buildRedirect = (pluginOptions, route) => {
             HostName: url.hostname,
         };
     }
-    else {
-        return {
-            ReplaceKeyWith: util_1.withoutTrailingSlash(util_1.withoutLeadingSlash(route.toPath)),
-            HttpRedirectCode: route.isPermanent ? '301' : '302',
-            Protocol: pluginOptions.protocol,
-            HostName: pluginOptions.hostname,
-        };
-    }
+    return {
+        ReplaceKeyWith: util_1.withoutTrailingSlash(util_1.withoutLeadingSlash(route.toPath)),
+        HttpRedirectCode: route.isPermanent ? '301' : '302',
+        Protocol: pluginOptions.protocol,
+        HostName: pluginOptions.hostname,
+    };
 };
+// converts gatsby redirects + rewrites to S3 routing rules
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-websiteconfiguration-routingrules.html
+const getRules = (pluginOptions, routes) => routes.map(route => ({
+    Condition: Object.assign({}, buildCondition(route.fromPath)),
+    Redirect: Object.assign({}, buildRedirect(pluginOptions, route)),
+}));
 let params = {};
 exports.onPreBootstrap = ({ reporter }, { bucketName }) => {
     if (!bucketName) {
@@ -61,6 +59,7 @@ exports.createPagesStatefully = ({ store, actions: { createPage } }, userPluginO
                 createPage({
                     path: '/',
                     component: path_1.default.join(__dirname, './fake-index.js'),
+                    context: {},
                 });
             }
             params = Object.assign(Object.assign({}, params), { 'index.html': {
@@ -72,7 +71,8 @@ exports.createPagesStatefully = ({ store, actions: { createPage } }, userPluginO
 exports.onPostBuild = ({ store }, userPluginOptions) => {
     const pluginOptions = Object.assign(Object.assign({}, constants_1.DEFAULT_OPTIONS), userPluginOptions);
     const { redirects, pages, program } = store.getState();
-    if (!pluginOptions.hostname !== !pluginOptions.protocol) { // If one of these is provided but not the other
+    if (!pluginOptions.hostname !== !pluginOptions.protocol) {
+        // If one of these is provided but not the other
         throw new Error(`Please either provide both 'hostname' and 'protocol', or neither of them.`);
     }
     let rewrites = [];
@@ -95,15 +95,14 @@ exports.onPostBuild = ({ store }, userPluginOptions) => {
     params = Object.assign(Object.assign({}, params), pluginOptions.params);
     let routingRules = [];
     let slsRoutingRules = [];
-    const temporaryRedirects = redirects.filter(redirect => redirect.fromPath !== '/')
+    const temporaryRedirects = redirects
+        .filter(redirect => redirect.fromPath !== '/')
         .filter(redirect => !redirect.isPermanent);
-    const permanentRedirects = redirects.filter(redirect => redirect.fromPath !== '/')
+    const permanentRedirects = redirects
+        .filter(redirect => redirect.fromPath !== '/')
         .filter(redirect => redirect.isPermanent);
     if (pluginOptions.generateRoutingRules) {
-        routingRules = [
-            ...getRules(pluginOptions, temporaryRedirects),
-            ...getRules(pluginOptions, rewrites),
-        ];
+        routingRules = [...getRules(pluginOptions, temporaryRedirects), ...getRules(pluginOptions, rewrites)];
         if (!pluginOptions.generateRedirectObjectsForPermanentRedirects) {
             routingRules.push(...getRules(pluginOptions, permanentRedirects));
         }
@@ -112,9 +111,9 @@ exports.onPostBuild = ({ store }, userPluginOptions) => {
 in a website configuration is limited to 50.
 Try setting the 'generateRedirectObjectsForPermanentRedirects' configuration option.`);
         }
-        slsRoutingRules = routingRules.map(({ Redirect, Condition }) => ({
-            RoutingRuleCondition: Condition,
-            RedirectRule: Redirect,
+        slsRoutingRules = routingRules.map(({ Redirect: redirect, Condition: condition }) => ({
+            RoutingRuleCondition: condition,
+            RedirectRule: redirect,
         }));
     }
     fs_1.default.writeFileSync(path_1.default.join(program.directory, './.cache/s3.routingRules.json'), JSON.stringify(routingRules));

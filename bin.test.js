@@ -1,4 +1,5 @@
 "use strict";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -21,12 +22,14 @@ describe('applies caching and content type headers', () => {
         if (!('CacheControl' in params)) {
             continue;
         }
+        // eslint-disable-next-line no-loop-func
         it(`to ${pattern} files`, async () => {
+            var _a;
             // find a file that matches this pattern
             const files = glob_1.default.sync(pattern, { cwd: PUBLIC_DIR, nodir: true });
             const file = files[0];
             const response = await node_fetch_1.default(`${TESTING_ENDPOINT}/${file}`);
-            const contentType = mime_1.default.getType(file) || 'application/octet-stream';
+            const contentType = (_a = mime_1.default.getType(file)) !== null && _a !== void 0 ? _a : 'application/octet-stream';
             expect(response.ok).toBe(true);
             expect(response.headers.get('cache-control')).toBe(params.CacheControl);
             expect(response.headers.get('content-type')).toBe(contentType);
@@ -43,35 +46,37 @@ describe('redirects', () => {
         expect(followedRedirect.status).toBe(200);
     });
     test('temporarily', async () => {
-        const response = await node_fetch_1.default(TESTING_ENDPOINT + '/hello-there', { redirect: 'manual' });
-        expect(response.headers.get('location')).toBe(TESTING_ENDPOINT + '/client-only');
+        const response = await node_fetch_1.default(`${TESTING_ENDPOINT}/hello-there`, { redirect: 'manual' });
+        expect(response.headers.get('location')).toBe(`${TESTING_ENDPOINT}/client-only`);
         expect(response.status).toBe(302);
         const followedRedirect = await node_fetch_1.default(response.headers.get('location'));
         expect(followedRedirect.status).toBe(200);
     });
     test('permanently with a destination that is prefixed with itself', async () => {
-        const response = await node_fetch_1.default(TESTING_ENDPOINT + '/blog', { redirect: 'manual' });
+        const response = await node_fetch_1.default(`${TESTING_ENDPOINT}/blog`, { redirect: 'manual' });
         expect(response.status).toBe(301);
-        expect(response.headers.get('location')).toBe(TESTING_ENDPOINT + '/blog/1');
+        expect(response.headers.get('location')).toBe(`${TESTING_ENDPOINT}/blog/1`);
         const followedRedirect = await node_fetch_1.default(response.headers.get('location'));
         expect(followedRedirect.status).toBe(200);
     });
     test('client only routes', async () => {
-        const response = await node_fetch_1.default(TESTING_ENDPOINT + '/client-only/test', { redirect: 'manual' });
+        const response = await node_fetch_1.default(`${TESTING_ENDPOINT}/client-only/test`, { redirect: 'manual' });
         expect(response.status).toBe(302);
-        expect(response.headers.get('location')).toBe(TESTING_ENDPOINT + '/client-only');
+        expect(response.headers.get('location')).toBe(`${TESTING_ENDPOINT}/client-only`);
         const followedRedirect = await node_fetch_1.default(response.headers.get('location'));
         expect(followedRedirect.status).toBe(200);
     });
     test('special characters using WebsiteRedirectLocation', async () => {
-        const response = await node_fetch_1.default(TESTING_ENDPOINT + '/asdf123.-~_!%24%26\'()*%2B%2C%3B%3D%3A%40%25', { redirect: 'manual' });
+        const response = await node_fetch_1.default(`${TESTING_ENDPOINT}/asdf123.-~_!%24%26'()*%2B%2C%3B%3D%3A%40%25`, {
+            redirect: 'manual',
+        });
         expect(response.status).toBe(301);
-        expect(response.headers.get('location')).toBe(TESTING_ENDPOINT + '/special-characters');
+        expect(response.headers.get('location')).toBe(`${TESTING_ENDPOINT}/special-characters`);
     });
     test('trailing slash using WebsiteRedirectLocation', async () => {
-        const response = await node_fetch_1.default(TESTING_ENDPOINT + '/trailing-slash/', { redirect: 'manual' });
+        const response = await node_fetch_1.default(`${TESTING_ENDPOINT}/trailing-slash/`, { redirect: 'manual' });
         expect(response.status).toBe(301);
-        expect(response.headers.get('location')).toBe(TESTING_ENDPOINT + '/trailing-slash/1');
+        expect(response.headers.get('location')).toBe(`${TESTING_ENDPOINT}/trailing-slash/1`);
     });
 });
 //# sourceMappingURL=bin.test.js.map

@@ -21,6 +21,9 @@ exports.DEFAULT_OPTIONS = {
     generateMatchPathRewrites: true,
     removeNonexistentObjects: true,
     enableS3StaticWebsiteHosting: true,
+    parallelLimit: 20,
+    // the typing requires this for some reason...
+    plugins: [],
 };
 // https://www.gatsbyjs.org/docs/caching/
 exports.CACHING_PARAMS = {

@@ -72,3 +72,4 @@ jspm_packages/
 .serverless
 
 .idea/
+docs/build/

@@ -1,6 +1,6 @@
-import * as S3 from 'aws-sdk/clients/s3';
+import { BucketCannedACL, Types } from 'aws-sdk/clients/s3';
 import path from 'path';
-import { BucketCannedACL } from 'aws-sdk/clients/s3';
+import { Actions, Page, PluginOptions } from 'gatsby';
 
 export const CACHE_FILES = {
     config: path.join('.cache', 's3.config.json'),
@@ -9,11 +9,20 @@ export const CACHE_FILES = {
     redirectObjects: path.join('.cache', 's3.redirectObjects.json'),
 };
 
+export type GatsbyRedirect = Parameters<Actions['createRedirect']>[0];
+
+// @ gatsby maintainers, why is this not typed?
+export interface GatsbyState {
+    redirects: GatsbyRedirect[];
+    pages: Map<string, Page>;
+    program: { directory: string };
+}
+
 export type Params = {
-    [k in string]: Partial<S3.Types.PutObjectRequest>
+    [k in string]: Partial<Types.PutObjectRequest>;
 };
 
-export interface PluginOptions {
+export interface S3PluginOptions extends PluginOptions {
     // An optional prefix/directory to use on the bucket. This requires the bucket to already be
     // created. Do not include leading or trailing slashes. Can be useful with CloudFront originPath option.
     bucketPrefix?: string;
@@ -79,9 +88,12 @@ export interface PluginOptions {
     // but could be useful for preventing Cloud formation Stack Drift or suppressing Terraform noise if you don't need
     // the static website hosting functionality.
     enableS3StaticWebsiteHosting?: boolean;
+
+    // Max number of files to upload in parallel.
+    parallelLimit?: number;
 }
 
-export const DEFAULT_OPTIONS: PluginOptions = {
+export const DEFAULT_OPTIONS: S3PluginOptions = {
     bucketName: '',
 
     params: {},
@@ -93,6 +105,10 @@ export const DEFAULT_OPTIONS: PluginOptions = {
     generateMatchPathRewrites: true,
     removeNonexistentObjects: true,
     enableS3StaticWebsiteHosting: true,
+    parallelLimit: 20,
+
+    // the typing requires this for some reason...
+    plugins: [],
 };
 
 // https://www.gatsbyjs.org/docs/caching/
